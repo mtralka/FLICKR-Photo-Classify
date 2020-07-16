@@ -1,6 +1,6 @@
 # FLICKR-Photo-Classify
 
-Uses the results from FLICKR GeoSearch. Allows for easy in-browser photo classification with heavy Google Sheets integration
+Uses the results from FLICKR GeoSearch. Allows for easy in-browser photo classification with real-time Google Sheets integration
 
 
 
