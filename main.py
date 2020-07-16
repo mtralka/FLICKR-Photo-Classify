@@ -1,4 +1,3 @@
-
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import PySimpleGUI as sg
@@ -10,7 +9,6 @@ Matthew Tralka 2020
 GNU General Public License v3.0
 """""
 
-
 scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
          "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
 
@@ -20,7 +18,6 @@ client = gspread.authorize(creds)
 question_count = 1
 reviewed, first = False, True
 global_Theme = 'Dark Grey 3'
-
 
 
 def startup():
@@ -201,8 +198,9 @@ def main():
     # Main Col and GUI
     # """""""""
     main_subjects = (
-        'selfie', 'pets', 'livestock', 'wildlife', 'plant', 'landscape', 'water', 'recreation', 'building',
-        'subject_other_bool', 'infrastructure')
+        'people', 'pets', 'livestock', 'wildlife', 'plant', 'landscape', 'water', 'recreation', 'building',
+        'infrastructure',
+        'subject_other_bool')
 
     main_languages = (
         'English', 'Italian', 'German', 'French', 'Other'
@@ -216,9 +214,9 @@ def main():
 
     subject_col = [
         [sg.Text('Title: ', font=(font, big_font), justification='left', size=(5, 1)),
-         sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left')],
+         sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left'), sg.Exit(pad=(2, 2))],
         [sg.Text('Photo Subject:', font=(font, big_font), justification='center')],
-        [sg.Checkbox('People', default=False, font=(font, small_font), key='-selfie-')],
+        [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-')],
         [sg.Checkbox('Pets', default=False, font=(font, small_font), key='-pets-')],
         [sg.Checkbox('Livestock (e.g. cows, sheep)', default=False, font=(font, small_font), key='-livestock-')],
         [sg.Checkbox('Wildlife', default=False, font=(font, small_font), key='-wildlife-')],
@@ -526,12 +524,15 @@ def main():
         if event == '-plant_tags_done-':
             question_count = 10
             write_response(bool_message=False, header='What Tags are Used?', message=str(values['-plant_tags-']))
+            window['-plantcol-'].update(visible=False)
+            first_click = True
 
         # """""""""
         # Landscape
         # """""""""
         if event == '-landscape-':
             if first_click:
+                window['-plantcol-'].update(visible=False)
                 window['-landcol-'].update(visible=True)
                 question_response(col='land', skip=0)
                 first_click = False
@@ -564,12 +565,18 @@ def main():
         if event == '-landscape_ID_correct-':
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='Correctly')
+            window['-landcol-'].update(visible=False)
+            first_click = True
         elif event == '-landscape_ID_incorrect-':
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='Incorrectly')
+            window['-landcol-'].update(visible=False)
+            first_click = True
         elif event == '-landscape_ID_no-':
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='No ID')
+            window['-landcol-'].update(visible=False)
+            first_click = True
         elif event == '-landscape_ID_other-':
             question_count = 3
             question_response(col='land', skip=1)
@@ -578,6 +585,8 @@ def main():
             question_count = 4
             write_response(bool_message=False, header='How does the user ID the landscape?',
                            message=values['-land_ID_input-'])
+            window['-landcol-'].update(visible=False)
+            first_click = True
 
         # """""""""
         # Buttons
@@ -606,9 +615,8 @@ sheet = client.open(values_startup['-sheet_name-']).sheet1
 count = int(values_startup['-dlink_row-'])
 count += 1
 
-starting_row = values_startup['-dlink_row-']
+starting_row = int(values_startup['-dlink_row-']) + 1
 starting_col = values_startup['-dlink_column-']
 title_col = values_startup['-title_column-']
-
 
 main()
