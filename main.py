@@ -4,6 +4,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 import PySimpleGUI as sg
 import webbrowser
 
+"""""
+FLICKR Photo Classify V1.0
+Matthew Tralka 2020
+GNU General Public License v3.0
+"""""
+
+
 scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
          "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
 
