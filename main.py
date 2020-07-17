@@ -2,6 +2,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import PySimpleGUI as sg
 import webbrowser
+import sys
+import os
 
 """""
 FLICKR Photo Classify V1.0
@@ -9,15 +11,15 @@ Matthew Tralka 2020
 GNU General Public License v3.0
 """""
 
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name("CREDS.json", scope)
-client = gspread.authorize(creds)
+def resource_path(relative_path):
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-question_count = 1
-reviewed, first = False, True
-global_Theme = 'Dark Grey 3'
+    return os.path.join(base_path, relative_path)
 
 
 def startup():
@@ -214,7 +216,8 @@ def main():
 
     subject_col = [
         [sg.Text('Title: ', font=(font, big_font), justification='left', size=(5, 1)),
-         sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left'), sg.Exit(pad=(2, 2))],
+         sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left'),
+         sg.Exit(pad=(2, 2))],
         [sg.Text('Photo Subject:', font=(font, big_font), justification='center')],
         [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-')],
         [sg.Checkbox('Pets', default=False, font=(font, small_font), key='-pets-')],
@@ -251,16 +254,18 @@ def main():
 
         [sg.Col(subject_col, justification='left', element_justification='Left', pad=(0, 0)),
          sg.Col(plant_col, visible=False, key='-plantcol-', scrollable=False, element_justification='left',
-                justification='right'),
+                justification='right', pad=(0, 0)),
          sg.Col(landscape_col, visible=False, key='-landcol-', element_justification='left',
-                justification='right')],
+                justification='right', pad=(0, 0))],
 
     ]
     bottom_buttons = [
         [sg.Button('', button_color=(sg.theme_background_color(), sg.theme_background_color()),
-                   image_filename='arrow-bar-left-red.png', image_subsample=8, border_width=0, key='-previous-'),
+                   image_filename=resource_path('arrow-bar-left-red.png'), image_subsample=8, border_width=0,
+                   key='-previous-'),
          sg.Button('', button_color=(sg.theme_background_color(), sg.theme_background_color()),
-                   image_filename='arrow-bar-right-green.png', image_subsample=8, border_width=0, key='-next-')],
+                   image_filename=resource_path('arrow-bar-right-green.png'), image_subsample=8, border_width=0,
+                   key='-next-')],
 
     ]
 
@@ -525,6 +530,7 @@ def main():
             question_count = 10
             write_response(bool_message=False, header='What Tags are Used?', message=str(values['-plant_tags-']))
             window['-plantcol-'].update(visible=False)
+            clear_plants()
             first_click = True
 
         # """""""""
@@ -566,16 +572,19 @@ def main():
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='Correctly')
             window['-landcol-'].update(visible=False)
+            clear_landscape()
             first_click = True
         elif event == '-landscape_ID_incorrect-':
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='Incorrectly')
             window['-landcol-'].update(visible=False)
+            clear_landscape()
             first_click = True
         elif event == '-landscape_ID_no-':
             question_count = 3
             write_response(bool_message=False, header='How does the user ID the landscape?', message='No ID')
             window['-landcol-'].update(visible=False)
+            clear_landscape()
             first_click = True
         elif event == '-landscape_ID_other-':
             question_count = 3
@@ -586,6 +595,7 @@ def main():
             write_response(bool_message=False, header='How does the user ID the landscape?',
                            message=values['-land_ID_input-'])
             window['-landcol-'].update(visible=False)
+            clear_landscape()
             first_click = True
 
         # """""""""
@@ -608,6 +618,15 @@ def main():
             clear_selection()
             image_change(next=True)
 
+
+scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
+         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+question_count = 1
+reviewed, first = False, True
+global_Theme = 'Dark Grey 3'
+
+creds = ServiceAccountCredentials.from_json_keyfile_name(resource_path('CREDS.json'), scope)
+client = gspread.authorize(creds)
 
 values_startup = startup()
 sheet = client.open(values_startup['-sheet_name-']).sheet1
