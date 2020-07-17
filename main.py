@@ -422,6 +422,7 @@ def main():
         if event == '-plant-':
             if first_click:
                 window['-plantcol-'].update(visible=True)
+                window['-landcol-'].update(visible=False)
                 question_response(col='plant', skip=0)
                 first_click = False
             else:
