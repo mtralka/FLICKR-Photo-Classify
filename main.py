@@ -6,7 +6,7 @@ import sys
 import os
 
 """""
-FLICKR Photo Classify V1.0
+FLICKR Photo Classify V1.1
 Matthew Tralka 2020
 GNU General Public License v3.0
 """""
@@ -20,6 +20,20 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
+
+
+scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
+         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+
+question_count = 1
+reviewed, first = False, True
+global_Theme = 'Dark Grey 3'
+
+try:
+    creds = ServiceAccountCredentials.from_json_keyfile_name(resource_path('CREDS.json'), scope)
+    client = gspread.authorize(creds)
+except:
+    sg.popup_error("Invalid Credentials")
 
 
 def startup():
@@ -62,6 +76,10 @@ def main():
     standard_pad = (0, 0)
     sg.theme(global_Theme)
     title = 'Photo Classify'
+
+    # """""""""
+    # Plant
+    # """""""""
 
     user_ID_plant = [
 
@@ -107,16 +125,17 @@ def main():
          sg.Button('IDK', key='-flower_visible_idk-', visible=True)],
 
     ]
-    flower_species = [
 
-        [sg.Text('Flower Species / Genus : ', visible=True)],
-        [sg.InputText(enable_events=True, key='-flower_species-')],
-        [sg.Button('Submit', key='-flower_species_done-')],
+    # flower_species = [
 
-    ]
+    #    [sg.Text('Flower Species / Genus : ', visible=True)],
+    #    [sg.InputText(enable_events=True, key='-flower_species-')],
+    #    [sg.Button('Submit', key='-flower_species_done-')],
+
+    # ]
     flowers_list = [
 
-        [sg.Text('Are Flowers Black, Red, or Red List Species?', key='-flowers_on_list-', visible=True)],
+        [sg.Text('Is Plant a Black, Red, or Red List Species?', key='-flowers_on_list-', visible=True)],
         [sg.Button('Black', key='-flowers_on_list_black-', visible=True),
          sg.Button('Watch', key='-flowers_on_list_watch-', visible=True),
          sg.Button('Red', key='-flowers_on_list_red-', visible=True),
@@ -146,10 +165,10 @@ def main():
         [sg.Col(individual_plant_visible, key='-plantsub4-', visible=False, pad=standard_pad, size=standard_col_size)],
         [sg.Col(plant_ID, key='-plantsub5-', visible=False, pad=standard_pad, size=input_col_size)],
         [sg.Col(flowers_visible, key='-plantsub6-', visible=False, pad=(0, 0), size=standard_col_size)],
-        [sg.Col(flower_species, key='-plantsub7-', visible=False, pad=(0, 0), size=input_col_size)],
-        [sg.Col(flowers_list, key='-plantsub8-', visible=False, pad=standard_pad, size=standard_col_size)],
-        [sg.Col(plant_list_awareness, key='-plantsub9-', visible=False, pad=standard_pad, size=standard_col_size)],
-        [sg.Col(plant_tags, key='-plantsub10-', visible=False, pad=standard_pad, size=input_col_size)],
+        # [sg.Col(flower_species, key='-plantsub7-', visible=False, pad=(0, 0), size=input_col_size)],
+        [sg.Col(flowers_list, key='-plantsub7-', visible=False, pad=standard_pad, size=standard_col_size)],
+        [sg.Col(plant_list_awareness, key='-plantsub8-', visible=False, pad=standard_pad, size=standard_col_size)],
+        [sg.Col(plant_tags, key='-plantsub9-', visible=False, pad=standard_pad, size=input_col_size)],
     ]
 
     # """""""""
@@ -157,26 +176,22 @@ def main():
     # """""""""
     landscape = [
         [sg.Text('Which Landscape is Visible?', visible=True)],
-        [sg.Button('Sub-alpine forest', key='-subalpine-', visible=True)],
-        [sg.Button('Alpine meadow', key='-alpine_meadow-', visible=True)],
-        [sg.Button('Alpine scrub with low shrubs', tooltip='Rhododendron, Vaccinium, Juniperus', key='-alpine_scrub-',
-                   visible=True)],
-        [sg.Button('Other', key='-landscape_other-', visible=True)],
+        [sg.Checkbox('Sub-alpine forest', key='-subalpine-', visible=True)],
+        [sg.Checkbox('Alpine meadow', key='-alpine_meadow-', visible=True)],
+        [sg.Checkbox('Alpine scrub with low shrubs', tooltip='Rhododendron, Vaccinium, Juniperus', key='-alpine_scrub-',
+                     visible=True)],
+        [sg.Checkbox('Other: ', key='-landscape_other-', visible=True),
+         sg.InputText(key='-land_other_input-', size=(20, 1), enable_events=True)],
+        [sg.Button('Submit Land Type', key='-land_other_done-', button_color=('black', 'green'), enable_events=True)],
 
-    ]
-
-    landscape_other = [
-        [sg.Text('Other, please clarify')],
-        [sg.InputText(key='-land_other_input-', size=(20, 1), enable_events=True)],
-        [sg.Button('Submit', key='-land_other_done-')],
     ]
 
     user_id_land = [
         [sg.Text('How does the user ID the landscape?', visible=True)],
-        [sg.Button('Correctly', key='-landscape_ID_correct-', visible=True),
-         sg.Button('Incorrectly', key='-landscape_ID_incorrect-', visible=True)],
-        [sg.Button('No ID', key='-landscape_ID_no-', visible=True),
-         sg.Button('Other', key='-landscape_ID_other-', visible=True)],
+        [sg.Button('Correctly', key='-landscape_ID_correct-', visible=True, enable_events=True),
+         sg.Button('Incorrectly', key='-landscape_ID_incorrect-', visible=True, enable_events=True)],
+        [sg.Button('No ID', key='-landscape_ID_no-', visible=True, enable_events=True),
+         sg.Button('Other', key='-landscape_ID_other-', visible=True, enable_events=True)],
 
     ]
 
@@ -189,10 +204,81 @@ def main():
 
     landscape_col = [
 
-        [sg.Col(landscape, key='-landsub1-', visible=True, pad=standard_pad, size=(300, 150))],
-        [sg.Col(landscape_other, visible=False, key='-landsub2-', pad=standard_pad, size=input_col_size)],
-        [sg.Col(user_id_land, key='-landsub3-', pad=standard_pad, visible=False, size=(300, 100))],
-        [sg.Col(user_ID_land_other, visible=False, key='-landsub4-', pad=standard_pad, size=input_col_size)],
+        [sg.Col(landscape, key='-landsub1-', visible=True, pad=standard_pad, size=(300, 200))],
+        # [sg.Col(landscape_other, visible=False, key='-landsub2-', pad=standard_pad, size=input_col_size)],
+        [sg.Col(user_id_land, key='-landsub2-', pad=standard_pad, visible=False, size=(300, 100))],
+        [sg.Col(user_ID_land_other, visible=False, key='-landsub3-', pad=standard_pad, size=input_col_size)],
+
+    ]
+
+    # """""""""
+    # People
+    # """""""""
+
+    selfie = [
+        [sg.Text('Is it a selfie?', visible=True)],
+        [sg.Button('Yes', key='-selfie_yes-', visible=True),
+         sg.Button('No', key='-selfie_no-', visible=True),
+         sg.Button('IDK', key='-selfie_idk-',
+                   visible=True)],
+    ]
+
+    people_col = [
+
+        [sg.Col(selfie, key='-peoplesub1-', visible=True, pad=standard_pad, size=(300, 150))],
+    ]
+    # """""""""
+    # Water
+    # """""""""
+    water_type = [
+        [sg.Text('What type of water?', visible=True)],
+        [sg.Button('Stream / River', key='-water_stream_river-', visible=True),
+         sg.Button('Lake / Pond', key='-water_lake_pond-', visible=True)],
+        [sg.Button('Waterfall', key='-water_waterfall-',
+                   visible=True),
+         sg.Button('Coastal', key='-water_coastal-', visible=True),
+         sg.Button('Other', key='-water_other-', visible=True)],
+    ]
+
+    water_other = [
+        [sg.Text('Other water, please clarify')],
+        [sg.InputText(key='-water_other_clarify-', size=(20, 1), enable_events=True)],
+        [sg.Button('Submit', key='-water_other_done-')],
+    ]
+
+    water_col = [
+
+        [sg.Col(water_type, key='-watersub1-', visible=True, pad=standard_pad, size=(300, 150))],
+        [sg.Col(water_other, visible=False, key='-watersub2-', pad=standard_pad, size=input_col_size)],
+    ]
+
+    # """""""""
+    # Weather
+    # """""""""
+    weather_input = [
+        [sg.Text('Weather, please clarify')],
+        [sg.InputText(key='-weather_input_clarify-', size=(20, 1), enable_events=True)],
+        [sg.Button('Submit', key='-weather_other_done-')],
+    ]
+
+    weather_col = [
+
+        [sg.Col(weather_input, key='-weathersub1-', visible=True, pad=standard_pad, size=input_col_size)],
+
+    ]
+
+    # """""""""
+    # 'Cultural Artifact'
+    # """""""""
+    culture_input = [
+        [sg.Text('Culture, please clarify')],
+        [sg.InputText(key='-culture_input_clarify-', size=(20, 1), enable_events=True)],
+        [sg.Button('Submit', key='-culture_other_done-')],
+    ]
+
+    culture_col = [
+
+        [sg.Col(culture_input, key='-culturesub1-', visible=True, pad=standard_pad, size=input_col_size)],
 
     ]
 
@@ -201,25 +287,29 @@ def main():
     # """""""""
     main_subjects = (
         'people', 'pets', 'livestock', 'wildlife', 'plant', 'landscape', 'water', 'recreation', 'building',
-        'infrastructure',
+        'infrastructure', 'weather', 'culture',
         'subject_other_bool')
 
     main_languages = (
-        'English', 'Italian', 'German', 'French', 'Other'
+        'English', 'Italian', 'German', 'French', 'Icelandic', 'IDK', 'None', 'Other'
     )
 
     col_schema = (
-        "Reviewer", "Main Subject", 'Languages', "Does User ID Plant", "Is ID Correct", "User Defined Plant Species",
+        "Reviewer", 'Post Comments', "Main Subject", 'Languages', "Does User ID Plant", "Is ID Correct",
+        "User Defined Plant Species",
         "Are Individual Plant Species Visible?", "Plant Species / Genus", "Are Flowers Visible?",
-        "Flower Species / Genus", "Black / Watch / Red List?", "Were Users Aware?", "What Tags are Used?",
-        "Which Landscape is Visible?", "How does the user ID the landscape?")
+        "Black / Watch / Red List?", "Were Users Aware?", "What Tags are Used?",
+        "Which Landscape is Visible?", "How does the user ID the landscape?", "Is it a selfie?", "Water Type",
+        "Weather Type", "Cultural Aspect")
+
+    # "Flower Species / Genus",
 
     subject_col = [
         [sg.Text('Title: ', font=(font, big_font), justification='left', size=(5, 1)),
          sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left'),
          sg.Exit(pad=(2, 2))],
         [sg.Text('Photo Subject:', font=(font, big_font), justification='center')],
-        [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-')],
+        [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-', enable_events=True)],
         [sg.Checkbox('Pets', default=False, font=(font, small_font), key='-pets-')],
         [sg.Checkbox('Livestock (e.g. cows, sheep)', default=False, font=(font, small_font), key='-livestock-')],
         [sg.Checkbox('Wildlife', default=False, font=(font, small_font), key='-wildlife-')],
@@ -228,12 +318,14 @@ def main():
         [sg.Checkbox('Natural Landscape', tooltip="mountains, meadows, forests", default=False, font=(font, small_font),
                      key='-landscape-', enable_events=True)],
 
-        [sg.Checkbox('Water Feature', tooltip='g. stream, lake, river', default=False, font=(font, small_font),
-                     key='-water-')],
+        [sg.Checkbox('Water Feature', default=False, font=(font, small_font),
+                     key='-water-', enable_events=True)],
         [sg.Checkbox('Recreational', tooltip='hiking, biking, fishing', default=False, font=(font, small_font),
                      key='-recreation-')],
         [sg.Checkbox('Building(s)', default=False, font=(font, small_font), key='-building-')],
         [sg.Checkbox('Infrastructure', default=False, font=(font, small_font), key='-infrastructure-')],
+        [sg.Checkbox('Weather', default=False, font=(font, small_font), key='-weather-', enable_events=True)],
+        [sg.Checkbox('Cultural Aspect', default=False, font=(font, small_font), key='-culture-', enable_events=True)],
         [sg.Checkbox('Other', default=False, font=(font, small_font), key='-subject_other_bool-'),
          sg.InputText(size=(11, 1), key='-subject_other-')],
         [sg.Text()],
@@ -242,9 +334,14 @@ def main():
          sg.Checkbox('Italian', default=False, font=(font, small_font), key='-Italian-')],
         [sg.Checkbox('German', default=False, font=(font, small_font), key='-German-'),
          sg.Checkbox('French', default=False, font=(font, small_font), key='-French-')],
+        [sg.Checkbox('IDK', default=False, font=(font, small_font), key='-IDK-', size=(5, 1)),
+         sg.Checkbox('Icelandic', default=False, font=(font, small_font), key='-Icelandic-')],
+        [sg.Checkbox('None', default=False, font=(font, small_font), key='-None-')],
         [sg.Checkbox('Other: ', default=False, font=(font, small_font), key='-language_other_bool-'),
          sg.InputText('', size=(10, 1), key='-language_other-')],
-
+        [sg.Text()],
+        [sg.Text('Post Comments: ', font=(font, big_font), justification='center')],
+        [sg.Multiline(key='-post_comments-', size=(30, 2))],
         [sg.Text('----------')],
         [sg.Text('Go to Row: ', font=(font, small_font)), sg.InputText(key='-go_to_page_number-', size=(4, 1)),
          sg.Button('Go', key='-go_to_page-')],
@@ -254,9 +351,17 @@ def main():
 
         [sg.Col(subject_col, justification='left', element_justification='Left', pad=(0, 0)),
          sg.Col(plant_col, visible=False, key='-plantcol-', scrollable=False, element_justification='left',
-                justification='right', pad=(0, 0)),
+                justification='right'),
          sg.Col(landscape_col, visible=False, key='-landcol-', element_justification='left',
-                justification='right', pad=(0, 0))],
+                justification='right'),
+         sg.Col(people_col, visible=False, key='-peoplecol-', element_justification='left',
+                justification='right'),
+         sg.Col(water_col, visible=False, key='-watercol-', element_justification='left',
+                justification='right'),
+         sg.Col(weather_col, visible=False, key='-weathercol-', element_justification='left',
+                justification='right'),
+         sg.Col(culture_col, visible=False, key='-culturecol-', element_justification='left',
+                justification='right')],
 
     ]
     bottom_buttons = [
@@ -303,20 +408,49 @@ def main():
                 languages = languages[1:]
             write_response(bool_message=None, header='Languages', message=languages)
 
-
         except:
             print('Submit Changes Error')
+            sg.ErrorElement('Could not submit changes')
+
+        try:
+            # Comment Submit
+            write_response(bool_message=None, header='Post Comments',
+                           message=str(values['-post_comments-']))
+
+        except:
+            print('Could not post comments')
+            sg.ErrorElement('Could not post comments')
 
     def clear_plants():
-        clear_col(col='plant', max_sub=10)
+        clear_col(col='plant', max_sub=9)
         window['-plant_tags-'].update('')
-        window['-flower_species-'].update('')
+        # window['-flower_species-'].update('')
         window['-user_plant_species-'].update('')
+        window['-plant_species-'].update('')
 
     def clear_landscape():
-        clear_col(col='land', max_sub=4)
+        clear_col(col='land', max_sub=3)
         window['-land_other_input-'].update('')
         window['-land_ID_input-'].update('')
+        window['-alpine_meadow-'].update(False)
+        window['-alpine_scrub-'].update(False)
+        window['-subalpine-'].update(False)
+        window['-landscape_other-'].update(False)
+
+    def clear_people():
+        clear_col(col='people', max_sub=1)
+
+    def clear_water():
+        clear_col(col='water', max_sub=2)
+        window['-water_other_clarify-'].update('')
+
+    def clear_weather():
+        clear_col(col='weather', max_sub=1)
+        window['-weather_input_clarify-'].update('')
+
+    def clear_culture():
+        clear_col(col='culture', max_sub=1)
+        window['-culture_input_clarify-'].update('')
 
     def clear_selection():
         for x in range(0, len(main_subjects) - 1):
@@ -330,9 +464,14 @@ def main():
         window['-language_other_bool-'].update(False)
         window['-language_other-'].update('')
         window['-go_to_page_number-'].update('')
+        window['-post_comments-'].update('')
 
         clear_plants()
         clear_landscape()
+        clear_water()
+        clear_people()
+        clear_weather()
+        clear_culture()
 
     def image_change(next):
         global count, reviewed, title_col
@@ -376,13 +515,37 @@ def main():
     def question_response(col, skip):
         global question_count
 
-        if col == 'plant' and skip <= 10:
+        if col == 'plant' and skip <= 9:
             question_count += skip
 
             window[f'-{col}sub{question_count}-'].update(visible=True)
             sg.Col.unhide_row(window[f'-{col}sub{question_count}-'])
 
-        elif col == 'land' and skip <= 4:
+        elif col == 'land' and skip <= 3:
+            question_count += skip
+
+            window[f'-{col}sub{question_count}-'].update(visible=True)
+            sg.Col.unhide_row(window[f'-{col}sub{question_count}-'])
+
+        elif col == 'people' and skip <= 1:
+            question_count += skip
+
+            window[f'-{col}sub{question_count}-'].update(visible=True)
+            sg.Col.unhide_row(window[f'-{col}sub{question_count}-'])
+
+        elif col == 'water' and skip <= 2:
+            question_count += skip
+
+            window[f'-{col}sub{question_count}-'].update(visible=True)
+            sg.Col.unhide_row(window[f'-{col}sub{question_count}-'])
+
+        elif col == 'weather' and skip <= 1:
+            question_count += skip
+
+            window[f'-{col}sub{question_count}-'].update(visible=True)
+            sg.Col.unhide_row(window[f'-{col}sub{question_count}-'])
+
+        elif col == 'culture' and skip <= 1:
             question_count += skip
 
             window[f'-{col}sub{question_count}-'].update(visible=True)
@@ -407,7 +570,6 @@ def main():
 
     # First Run
     image_change(next=False)
-    first_click = True
 
     while True:
         global question_count, count
@@ -420,14 +582,16 @@ def main():
         # Plants
         # """""""""
         if event == '-plant-':
-            if first_click:
-                window['-plantcol-'].update(visible=True)
+            if bool(values['-plant-']):
+                window['-peoplecol-'].update(visible=False)
                 window['-landcol-'].update(visible=False)
+                window['-watercol-'].update(visible=False)
+                window['-weathercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=False)
+                window['-plantcol-'].update(visible=True)
                 question_response(col='plant', skip=0)
-                first_click = False
             else:
                 clear_plants()
-                first_click = True
 
         if event == '-user_ID_yes-':
             question_count = 1
@@ -448,12 +612,12 @@ def main():
             question_response(col='plant', skip=2)
         elif event == '-user_ID_correct_idk-':
             question_count = 2
-            write_response(bool_message=False, header='Is ID Correct', message='IDK')
+            write_response(bool_message=None, header='Is ID Correct', message='IDK')
             question_response(col='plant', skip=1)
 
         if event == '-user_plant_species_done-':
             question_count = 3
-            write_response(bool_message=False, header='User Defined Plant Species',
+            write_response(bool_message=None, header='User Defined Plant Species',
                            message=str(values['-user_plant_species-']))
             question_response(col='plant', skip=1)
 
@@ -473,143 +637,269 @@ def main():
         if event == '-plant_species_done-':
             question_count = 5
             question_response(col='plant', skip=1)
-            write_response(bool_message=False, header='Plant Species / Genus', message=str(values['-plant_species-']))
+            write_response(bool_message=None, header='Plant Species / Genus', message=str(values['-plant_species-']))
 
         if event == '-flower_visible_yes-':
-            question_count = 6
-            question_response(col='plant', skip=1)
+            question_count = 5
+            question_response(col='plant', skip=2)
             write_response(bool_message=True, header='Are Flowers Visible?', message=None)
         elif event == '-flower_visible_no-':
+            question_count = 5
             question_response(col='plant', skip=4)
             write_response(bool_message=False, header='Are Flowers Visible?', message=None)
-            question_count = 6
         elif event == '-flower_visible_idk-':
-            question_count = 6
+            question_count = 5
             question_response(col='plant', skip=4)
             write_response(bool_message=None, header='Are Flowers Visible?', message='IDK')
 
-        if event == '-flower_species_done-':
-            question_count = 7
-            question_response(col='plant', skip=1)
-            write_response(bool_message=False, header='Flower Species / Genus', message=str(values['-flower_species-']))
+        # if event == '-flower_species_done-':
+        #    question_count = 6
+        #    question_response(col='plant', skip=1)
+        #    write_response(bool_message=False, header='Flower Species / Genus', message=str(values['-flower_species-']))
 
         if event == '-flowers_on_list_black-':
-            question_count = 8
+            question_count = 7
             question_response(col='plant', skip=1)
             write_response(bool_message=None, header='Black / Watch / Red List?', message='Black')
         elif event == '-flowers_on_list_watch-':
-            question_count = 8
+            question_count = 7
             question_response(col='plant', skip=1)
             write_response(bool_message=None, header='Black / Watch / Red List?', message='Watch')
         elif event == '-flowers_on_list_red-':
-            question_count = 8
+            question_count = 7
             question_response(col='plant', skip=1)
             write_response(bool_message=None, header='Black / Watch / Red List?', message='Red')
         elif event == '-flowers_on_list_no-':
-            question_count = 8
+            question_count = 7
             question_response(col='plant', skip=1)
-            write_response(bool_message=False, header='Black / Watch / Red List?', message='No')
-        elif event == 'flowers_on_list_idk-':
-            question_count = 8
+            write_response(bool_message=False, header='Black / Watch / Red List?', message=None)
+        elif event == '-flowers_on_list_idk-':
+            question_count = 7
             question_response(col='plant', skip=1)
-            write_response(bool_message=True, header='Black / Watch / Red List?', message='IDK')
+            write_response(bool_message=None, header='Black / Watch / Red List?', message='IDK')
 
         if event == '-flowers_on_list_awareness_yes-':
-            question_count = 9
+            question_count = 8
             question_response(col='plant', skip=1)
-            write_response(bool_message=True, header='Were Users Aware?', message='')
+            write_response(bool_message=True, header='Were Users Aware?', message=None)
         elif event == '-flowers_on_list_awareness_no-':
-            question_count = 9
+            question_count = 8
             question_response(col='plant', skip=1)
-            write_response(bool_message=False, header='Were Users Aware?', message='No')
+            write_response(bool_message=False, header='Were Users Aware?', message=None)
         elif event == '-flowers_on_list_awareness_idk-':
-            question_count = 9
+            question_count = 8
             question_response(col='plant', skip=1)
             write_response(bool_message=None, header='Were Users Aware?', message='IDK')
 
         if event == '-plant_tags_done-':
-            question_count = 10
-            write_response(bool_message=False, header='What Tags are Used?', message=str(values['-plant_tags-']))
+            question_count = 9
+            write_response(bool_message=None, header='What Tags are Used?', message=str(values['-plant_tags-']))
             window['-plantcol-'].update(visible=False)
             clear_plants()
-            first_click = True
 
         # """""""""
         # Landscape
         # """""""""
         if event == '-landscape-':
-            if first_click:
+            # if first_click:
+            if bool(values['-landscape-']):
                 window['-plantcol-'].update(visible=False)
+                window['-peoplecol-'].update(visible=False)
+                window['-watercol-'].update(visible=False)
+                window['-weathercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=False)
                 window['-landcol-'].update(visible=True)
                 question_response(col='land', skip=0)
-                first_click = False
             else:
                 clear_landscape()
-                first_click = True
-
-        if event == '-subalpine-':
-            question_count = 1
-            question_response(col='land', skip=2)
-            write_response(bool_message=False, header='Which Landscape is Visible?', message='Subalpine Forest')
-        elif event == '-alpine_meadow-':
-            question_count = 1
-            question_response(col='land', skip=2)
-            write_response(bool_message=False, header='Which Landscape is Visible?', message='Alpine Meadow')
-        elif event == '-alpine_scrub-':
-            question_count = 1
-            question_response(col='land', skip=2)
-            write_response(bool_message=False, header='Which Landscape is Visible?', message='Alpine Scrub')
-        elif event == '-landscape_other-':
-            question_count = 1
-            question_response(col='land', skip=1)
 
         if event == '-land_other_done-':
-            question_count = 2
+            landscape_message = ''
+            question_count = 1
             question_response(col='land', skip=1)
-            write_response(bool_message=False, header='Which Landscape is Visible?',
-                           message=values['-land_other_input-'])
+
+            if bool(values['-subalpine-']):
+                landscape_message += ', Subalpine Forest'
+            if bool(values['-alpine_meadow-']):
+                landscape_message += ', Alpine Meadow'
+            if bool(values['-alpine_scrub-']):
+                landscape_message += ', Alpine Scrub'
+            if bool(values['-landscape_other-']):
+                landscape_message += ', ' + str(values['-land_other_input-'])
+
+            if landscape_message[0:2] == ', ':
+                landscape_message = landscape_message[1::]
+
+            write_response(bool_message=None, header='Which Landscape is Visible?',
+                           message=landscape_message)
 
         if event == '-landscape_ID_correct-':
-            question_count = 3
-            write_response(bool_message=False, header='How does the user ID the landscape?', message='Correctly')
+            question_count = 2
+            write_response(bool_message=None, header='How does the user ID the landscape?', message='Correctly')
             window['-landcol-'].update(visible=False)
             clear_landscape()
-            first_click = True
+
         elif event == '-landscape_ID_incorrect-':
-            question_count = 3
-            write_response(bool_message=False, header='How does the user ID the landscape?', message='Incorrectly')
+            question_count = 2
+            write_response(bool_message=None, header='How does the user ID the landscape?', message='Incorrectly')
             window['-landcol-'].update(visible=False)
             clear_landscape()
-            first_click = True
+
         elif event == '-landscape_ID_no-':
-            question_count = 3
-            write_response(bool_message=False, header='How does the user ID the landscape?', message='No ID')
+            question_count = 2
+            write_response(bool_message=None, header='How does the user ID the landscape?', message='No ID')
             window['-landcol-'].update(visible=False)
             clear_landscape()
-            first_click = True
+
         elif event == '-landscape_ID_other-':
-            question_count = 3
+            question_count = 2
             question_response(col='land', skip=1)
 
         if event == '-land_ID_done-':
-            question_count = 4
-            write_response(bool_message=False, header='How does the user ID the landscape?',
+            question_count = 3
+            write_response(bool_message=None, header='How does the user ID the landscape?',
                            message=values['-land_ID_input-'])
             window['-landcol-'].update(visible=False)
             clear_landscape()
-            first_click = True
+
+        # """""""""
+        # People
+        # """""""""
+        if event == '-people-':
+            if bool(values['-people-']):
+                window['-plantcol-'].update(visible=False)
+                window['-landcol-'].update(visible=False)
+                window['-watercol-'].update(visible=False)
+                window['-weathercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=False)
+                window['-peoplecol-'].update(visible=True)
+                question_response(col='people', skip=0)
+            else:
+                clear_people()
+
+        if event == '-selfie_yes-':
+            question_count = 1
+            write_response(bool_message=True, header='Is it a selfie?', message=None)
+
+            window['-peoplecol-'].update(visible=False)
+            clear_people()
+
+        elif event == '-selfie_no-':
+            question_count = 1
+            write_response(bool_message=False, header='Is it a selfie?', message=None)
+
+            window['-peoplecol-'].update(visible=False)
+            clear_people()
+
+        elif event == '-selfie_idk-':
+            question_count = 1
+            write_response(bool_message=None, header='Is it a selfie?', message='IDK')
+
+            window['-peoplecol-'].update(visible=False)
+            clear_people()
+
+        # """""""""
+        # Water
+        # """""""""
+        if event == '-water-':
+            if bool(values['-water-']):
+                window['-plantcol-'].update(visible=False)
+                window['-landcol-'].update(visible=False)
+                window['-peoplecol-'].update(visible=False)
+                window['-weathercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=False)
+                window['-watercol-'].update(visible=True)
+                question_response(col='water', skip=0)
+            else:
+                clear_water()
+
+        if event == '-water_stream_river-':
+            question_count = 1
+            write_response(bool_message=None, header='Water Type', message='Stream / River')
+            window['-watercol-'].update(visible=False)
+            clear_water()
+        elif event == '-water_lake_pond-':
+            question_count = 1
+            write_response(bool_message=None, header='Water Type', message='Lake / Pond')
+            window['-watercol-'].update(visible=False)
+            clear_water()
+
+        elif event == '-water_waterfall-':
+            question_count = 1
+            write_response(bool_message=None, header='Water Type', message='Waterfall')
+            window['-watercol-'].update(visible=False)
+            clear_water()
+
+        elif event == '-water_coastal-':
+            question_count = 1
+            write_response(bool_message=None, header='Water Type', message='Coastal')
+            window['-watercol-'].update(visible=False)
+            clear_water()
+
+        elif event == '-water_other-':
+            question_count = 1
+            question_response(col='water', skip=1)
+
+        if event == '-water_other_done-':
+            question_count = 1
+            write_response(bool_message=None, header='Water Type',
+                           message=values['-water_other_clarify-'])
+            window['-watercol-'].update(visible=False)
+            clear_water()
+
+        # """""""""
+        # Weather
+        # """""""""
+        if event == '-weather-':
+            if bool(values['-weather-']):
+                window['-plantcol-'].update(visible=False)
+                window['-landcol-'].update(visible=False)
+                window['-peoplecol-'].update(visible=False)
+                window['-watercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=False)
+                window['-weathercol-'].update(visible=True)
+                question_response(col='weather', skip=0)
+            else:
+                clear_weather()
+
+        if event == '-weather_other_done-':
+            question_count = 1
+            write_response(bool_message=None, header='Weather Type',
+                           message=values['-weather_input_clarify-'])
+            window['-weathercol-'].update(visible=False)
+            clear_weather()
+
+        # """""""""
+        # Cultural Aspect
+        # """""""""
+        if event == '-culture-':
+            if bool(values['-culture-']):
+                window['-plantcol-'].update(visible=False)
+                window['-landcol-'].update(visible=False)
+                window['-peoplecol-'].update(visible=False)
+                window['-watercol-'].update(visible=False)
+                window['-weathercol-'].update(visible=False)
+                window['-culturecol-'].update(visible=True)
+                question_response(col='culture', skip=0)
+            else:
+                clear_culture()
+
+        if event == '-culture_other_done-':
+            question_count = 1
+            write_response(bool_message=None, header='Cultural Aspect',
+                           message=values['-culture_input_clarify-'])
+            window['-culturecol-'].update(visible=False)
+            clear_culture()
 
         # """""""""
         # Buttons
         # """""""""
         if event == '-previous-':
-            first_click = True
             submit_changes()
             clear_selection()
             image_change(next=False)
 
         if event == '-next-':
-            first_click = True
             submit_changes()
             clear_selection()
             image_change(next=True)
@@ -620,17 +910,11 @@ def main():
             image_change(next=True)
 
 
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-question_count = 1
-reviewed, first = False, True
-global_Theme = 'Dark Grey 3'
-
-creds = ServiceAccountCredentials.from_json_keyfile_name(resource_path('CREDS.json'), scope)
-client = gspread.authorize(creds)
-
 values_startup = startup()
-sheet = client.open(values_startup['-sheet_name-']).sheet1
+try:
+    sheet = client.open(values_startup['-sheet_name-']).sheet1
+except:
+    print(sg.popup_error('Invalid Title'))
 
 count = int(values_startup['-dlink_row-'])
 count += 1
