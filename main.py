@@ -287,7 +287,7 @@ def main():
     # """""""""
     main_subjects = (
         'people', 'pets', 'livestock', 'wildlife', 'plant', 'landscape', 'water', 'recreation', 'building',
-        'infrastructure', 'weather', 'culture',
+        'infrastructure', 'weather', 'culture', 'agriculture',
         'subject_other_bool')
 
     main_languages = (
@@ -309,23 +309,22 @@ def main():
          sg.Text('', font=(font, big_font), size=(20, 1), key='-photo_title-', justification='left'),
          sg.Exit(pad=(2, 2))],
         [sg.Text('Photo Subject:', font=(font, big_font), justification='center')],
-        [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-', enable_events=True)],
-        [sg.Checkbox('Pets', default=False, font=(font, small_font), key='-pets-')],
+        [sg.Checkbox('Agriculture', default=False, font=(font, small_font), key='-agriculture-')],
+        [sg.Checkbox('Building(s)', default=False, font=(font, small_font), key='-building-')],
+        [sg.Checkbox('Cultural Aspect', default=False, font=(font, small_font), key='-culture-', enable_events=True)],
+        [sg.Checkbox('Infrastructure', default=False, font=(font, small_font), key='-infrastructure-')],
         [sg.Checkbox('Livestock (e.g. cows, sheep)', default=False, font=(font, small_font), key='-livestock-')],
-        [sg.Checkbox('Wildlife', default=False, font=(font, small_font), key='-wildlife-')],
-
-        [sg.Checkbox('Plant(s)', default=False, font=(font, small_font), key='-plant-', enable_events=True)],
         [sg.Checkbox('Natural Landscape', tooltip="mountains, meadows, forests", default=False, font=(font, small_font),
                      key='-landscape-', enable_events=True)],
-
-        [sg.Checkbox('Water Feature', default=False, font=(font, small_font),
-                     key='-water-', enable_events=True)],
+        [sg.Checkbox('Plant(s)', default=False, font=(font, small_font), key='-plant-', enable_events=True)],
+        [sg.Checkbox('People', default=False, font=(font, small_font), key='-people-', enable_events=True)],
+        [sg.Checkbox('Pets', default=False, font=(font, small_font), key='-pets-')],
         [sg.Checkbox('Recreational', tooltip='hiking, biking, fishing', default=False, font=(font, small_font),
                      key='-recreation-')],
-        [sg.Checkbox('Building(s)', default=False, font=(font, small_font), key='-building-')],
-        [sg.Checkbox('Infrastructure', default=False, font=(font, small_font), key='-infrastructure-')],
+        [sg.Checkbox('Water Feature', default=False, font=(font, small_font),
+                     key='-water-', enable_events=True)],
         [sg.Checkbox('Weather', default=False, font=(font, small_font), key='-weather-', enable_events=True)],
-        [sg.Checkbox('Cultural Aspect', default=False, font=(font, small_font), key='-culture-', enable_events=True)],
+        [sg.Checkbox('Wildlife', default=False, font=(font, small_font), key='-wildlife-')],
         [sg.Checkbox('Other', default=False, font=(font, small_font), key='-subject_other_bool-'),
          sg.InputText(size=(11, 1), key='-subject_other-')],
         [sg.Text()],
@@ -412,14 +411,15 @@ def main():
             print('Submit Changes Error')
             sg.ErrorElement('Could not submit changes')
 
-        try:
-            # Comment Submit
-            write_response(bool_message=None, header='Post Comments',
+        if len(str(values['-post_comments-'])) > 1:
+            try:
+                # Comment Submit
+                write_response(bool_message=None, header='Post Comments',
                            message=str(values['-post_comments-']))
 
-        except:
-            print('Could not post comments')
-            sg.ErrorElement('Could not post comments')
+            except:
+                print('Could not post comments')
+                sg.ErrorElement('Could not post comments')
 
     def clear_plants():
         clear_col(col='plant', max_sub=9)
